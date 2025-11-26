@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Typography User Study</title>
+    <style>
+        :root { --primary-color: #3b82f6; --bg-color: #f8fafc; --text-color: #1e293b; --card-bg: #ffffff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 650px; background: var(--card-bg); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin: 20px; }
+        
+        /* Animation */
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Intro Criteria Style */
+        .criteria-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: left; }
+        .criteria-group { margin-bottom: 15px; }
+        .criteria-group:last-child { margin-bottom: 0; }
+        .c-title { font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 6px; font-size: 1rem; }
+        .c-list { list-style: none; padding: 0; margin: 0; font-size: 0.9rem; color: #475569; }
+        .c-list li { margin-bottom: 4px; padding-left: 12px; position: relative; }
+        .c-list li:before { content: "•"; position: absolute; left: 0; color: #cbd5e1; }
+
+        /* Video & Image Area */
+        .visual-comparison { display: flex; flex-direction: column; gap: 10px; margin-bottom: 2rem; }
+        .main-visual-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #e2e8f0; }
+        .main-visual-box video, .main-visual-box img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Reference Box */
+        .ref-container { background: #f1f5f9; padding: 15px; border-radius: 8px; font-size: 0.9rem; border-left: 4px solid var(--primary-color); }
+        .ref-title { font-weight: bold; color: var(--primary-color); margin-bottom: 5px; display: block; }
+        .ref-content { display: flex; gap: 15px; align-items: center; }
+        .ref-text { flex: 1; }
+        .ref-gif { width: 120px; height: 120px; object-fit: cover; border-radius: 4px; border: 1px solid #cbd5e1; background: #fff;}
+
+        /* Questions */
+        .question-block { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0; }
+        .question-block:last-child { border-bottom: none; }
+        .question-label { font-weight: 700; margin-bottom: 0.4rem; display: block; font-size: 1rem; }
+        .question-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 0.8rem; display: block; }
+        
+        /* Likert Scale */
+        .scale-options { display: flex; justify-content: space-between; margin-top: 10px; padding: 0 10px; }
+        .scale-options label { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 0.8rem; color: #64748b; }
+        .scale-options input[type="radio"] { margin-bottom: 5px; accent-color: var(--primary-color); transform: scale(1.2); }
+        
+        /* Buttons & Inputs */
+        .btn-group { display: flex; gap: 10px; margin-top: 1rem; }
+        .btn { flex: 1; background-color: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+        .btn:hover { background-color: #2563eb; }
+        .btn-prev { background-color: #94a3b8; }
+        input[type="number"], input[type="text"], select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .time-inputs { display: flex; gap: 10px; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    </div>
+
+<script>
+    // ==========================================
+    // 1. DATA CONFIGURATION
+    // ==========================================
+    const items = [
+        { id: 1, src: "videos/global_fire.mp4", word: "FIRE", prompt: "Two soldiers are firing their guns, one standing and one crouching", type: "text", refData: "move fast-forward" },
+        { id: 2, src: "videos/global_kick.mp4", word: "KICK", prompt: "A soccer player kicks a ball.", type: "text", refData: "scale in and rotate" },
+        { id: 3, src: "videos/global_knight.mp4", word: "KNIGHT", prompt: "A knight draws his sword, pointing it forward, ready for battle", type: "text", refData: "slide out" },
+        { id: 4, src: "videos/local_father.mp4", word: "FATHER", prompt: "A tall father walks along the road, holding his little son with his hand", type: "ref", refData: "videos/9.gif" },
+        { id: 5, src: "videos/local_fire.mp4", word: "FIRE", prompt: "Two soldiers are firing their guns, one standing and one crouching", type: "ref", refData: "videos/2.gif" },
+        { id: 6, src: "videos/local_gym2.mp4", word: "GYM", prompt: "A man doing exercise by lifting two dumbbells in both hands", type: "ref", refData: "videos/4.gif" },
+        { id: 7, src: "videos/edge_gym.gif", word: "GYM", prompt: "A man doing exercise by lifting two dumbbells in both hands", type: "text", refData: "move like flowing wind with a rotating effect" },
+        { id: 8, src: "videos/edge_jet.gif", word: "JET", prompt: "Three jet planes are flying in formation side by side.", type: "text", refData: "a fast forward-sweeping movement that shoots ahead like a jet" }
+    ];
+
+    // ★ 구글 스크립트 URL (배포 후 붙여넣기 필수)
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5Kwu9ztCNsj78-3LFjW0MUXgZ29vsEH6UloPddCBLbPam4fy8YN3ss6YBDgJWvVWw8A/exec"; 
+
+    // ==========================================
+    // 2. STATE & RENDER
+    // ==========================================
+    let currentStep = 0; 
+    let responses = {}; 
+    const container = document.getElementById('main-container');
+
+    function renderStep() {
+        let html = '';
+
+        // --- STEP 0: INTRO ---
+        if (currentStep === 0) {
+            html = `
+                <div class="step active">
+                    <h2>Dynamic Typography User Study</h2>
+                    <p style="margin-bottom: 20px; color:#64748b;">
+                        Thank you for participating. We are evaluating a pipeline for end-to-end dynamic typography generation. Please read the criteria below carefully.<br>
+                        본 연구는 텍스트, 모션, 배경이 조화롭게 생성되는 AI 파이프라인을 평가하기 위함입니다. 아래 평가 기준을 숙지해 주세요.
+                    </p>
+                    
+                    <div class="criteria-box">
+                        <div class="criteria-group">
+                            <span class="c-title">1. Harmonization between Typography, Motion & Background</span>
+                            <ul class="c-list">
+                                <li><strong>Visual Coherence:</strong> Do text, motion, and scene blend naturally? (텍스트, 모션, 배경의 시각적 일체감)</li>
+                                <li><strong>No Artifacts:</strong> Absence of visual artifacts or unnatural transitions. (깨짐 현상이나 부자연스러운 전환 없음)</li>
+                                <li><strong>Balance:</strong> Perceived balance of all visual elements. (모든 시각적 요소의 균형)</li>
+                            </ul>
+                        </div>
+
+                        <div class="criteria-group">
+                            <span class="c-title">2. Readability & Legibility</span>
+                            <ul class="c-list">
+                                <li><strong>Clarity:</strong> Text remains easy to read despite motion & background. (움직임 속에서도 읽기 쉬움)</li>
+                                <li><strong>Contrast:</strong> Sufficient contrast with the background. (배경과의 명확한 대비)</li>
+                                <li><strong>Recognition:</strong> Recognizable at different speeds or styles. (다양한 속도나 스타일에도 글자 인식 가능)</li>
+                            </ul>
+                        </div>
+
+                        <div class="criteria-group">
+                            <span class="c-title">3. Aesthetic Quality</span>
+                            <ul class="c-list">
+                                <li><strong>Appeal:</strong> Overall visual appeal of the generated results. (전반적인 시각적 아름다움)</li>
+                                <li><strong>Consistency:</strong> Color, composition, and stylistic consistency. (색상, 구도, 스타일의 일관성)</li>
+                                <li><strong>Professionalism:</strong> Perceived professionalism or design quality. (전문적인 디자인 품질)</li>
+                            </ul>
+                        </div>
+
+                         <div class="criteria-group">
+                            <span class="c-title">4. Motion Fidelity (Motion Quality)</span>
+                            <ul class="c-list">
+                                <li><strong>Accuracy:</strong> Does the motion strictly follow the given Motion Prompt or Reference GIF? (제시된 텍스트 프롬프트나 레퍼런스 영상의 움직임을 정확히 따르는가?)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="next()">Start Evaluation (평가 시작)</button>
+                </div>
+            `;
+        } 
+        // --- STEP 1~8: ITEM EVALUATION ---
+        else if (currentStep >= 1 && currentStep <= items.length) {
+            const item = items[currentStep - 1];
+            
+            // 저장된 값 불러오기
+            const q1 = responses[`v${currentStep}_q1`] || '';
+            const q2 = responses[`v${currentStep}_q2`] || '';
+            const q3 = responses[`v${currentStep}_q3`] || '';
+            const q4 = responses[`v${currentStep}_q4`] || '';
+
+            // 메인 비디오/이미지 렌더링
+            const mainVisual = item.src.endsWith('.gif') 
+                ? `<img src="${item.src}" alt="Generated Result">`
+                : `<video src="${item.src}" controls loop autoplay muted playsinline></video>`;
+
+            // 레퍼런스 렌더링 (텍스트 vs GIF)
+            let refHtml = '';
+            if (item.type === 'text') {
+                refHtml = `
+                    <div class="ref-container">
+                        <span class="ref-title">Target Motion Prompt (목표 모션)</span>
+                        <div class="ref-content" style="font-style: italic; font-weight: 500;">
+                            "${item.refData}"
+                        </div>
+                    </div>
+                `;
+            } else {
+                refHtml = `
+                    <div class="ref-container">
+                        <span class="ref-title">Reference Motion GIF (참고 영상)</span>
+                        <div class="ref-content">
+                            <img src="${item.refData}" class="ref-gif" alt="Reference Motion">
+                            <span class="ref-text">Please check if the result follows the motion of this reference.<br>(왼쪽 결과물이 이 참고 영상의 움직임을 잘 따르는지 확인해주세요.)</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html = `
+                <div class="step active">
+                    <h3>Item ${currentStep} / ${items.length}</h3>
+                    
+                    <div class="visual-comparison">
+                        <div class="main-visual-box">
+                            ${mainVisual}
+                        </div>
+                        <div style="padding: 10px; background: #fff; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem;">
+                            <div><strong>Word:</strong> <span style="color:var(--primary-color)">${item.word}</span></div>
+                            <div style="color:#64748b; margin-top:4px;"><strong>Prompt:</strong> ${item.prompt}</div>
+                        </div>
+                        ${refHtml}
+                    </div>
+                    
+                    <form id="eval-form">
+                        ${createQuestionBlock(1, "Harmonization (조화)", "Coherence, No artifacts, Balance", 'q1', q1)}
+                        ${createQuestionBlock(2, "Readability (가독성)", "Legibility, Contrast, Recognition", 'q2', q2)}
+                        ${createQuestionBlock(3, "Aesthetic Quality (심미성)", "Appeal, Consistency, Professionalism", 'q3', q3)}
+                        ${createQuestionBlock(4, "Motion Fidelity (모션 충실도)", 
+                            item.type === 'text' ? "Matches the Motion Prompt? (모션 프롬프트 반영도)" : "Matches the Reference GIF? (레퍼런스 영상 반영도)", 
+                            'q4', q4)}
+                    </form>
+
+                    <div class="btn-group">
+                        <button class="btn btn-prev" onclick="prev()">Back (이전)</button>
+                        <button class="btn" onclick="saveAndNext(${currentStep})">Next (다음)</button>
+                    </div>
+                </div>
+            `;
+        } 
+        // --- STEP 9: FINAL SURVEY ---
+        else if (currentStep === items.length + 1) {
+            const s = responses;
+            html = `
+                <div class="step active">
+                    <h3>Final Survey</h3>
+                    
+                    <div class="question-block">
+                        <span class="question-label">1. Estimated Creation Time (작업 시간 예측) <span style="color:red">*</span></span>
+                        <div class="time-inputs">
+                            <input type="number" id="est_hour" placeholder="0" min="0" value="${s['est_hour']||''}" style="width:60px"> Hours 
+                            <input type="number" id="est_min" placeholder="0" min="0" value="${s['est_min']||''}" style="width:60px"> Minutes
+                        </div>
+                    </div>
+
+                    <div class="question-block">
+                        <span class="question-label">2. Design Experience (디자인 경험) <span style="color:red">*</span></span>
+                        <select id="design_level" style="width:100%;">
+                            <option value="" disabled ${!s['design_level']?'selected':''}>Select...</option>
+                            <option value="none" ${s['design_level']=='none'?'selected':''}>None (전혀 없음)</option>
+                            <option value="beginner" ${s['design_level']=='beginner'?'selected':''}>Beginner (초급)</option>
+                            <option value="intermediate" ${s['design_level']=='intermediate'?'selected':''}>Intermediate (중급)</option>
+                            <option value="advanced" ${s['design_level']=='advanced'?'selected':''}>Advanced (고급)</option>
+                        </select>
+                    </div>
+
+                    <div class="question-block">
+                        <span class="question-label">3. Motion Graphics Experience (영상 경험) <span style="color:red">*</span></span>
+                        <div>
+                            <label style="display:inline-flex; gap:5px; margin-right:15px;">
+                                <input type="radio" name="motion_exp" value="yes" ${s['motion_exp']=='yes'?'checked':''}> Yes
+                            </label>
+                            <label style="display:inline-flex; gap:5px;">
+                                <input type="radio" name="motion_exp" value="no" ${s['motion_exp']=='no'?'checked':''}> No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="question-block">
+                        <span class="question-label">4. Tools Used (사용한 도구) <span style="color:red">*</span></span>
+                        <input type="text" id="tools" value="${s['tools']||''}" placeholder="e.g., After Effects, None" style="width:100%;">
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-prev" onclick="prev()">Back (이전)</button>
+                        <button class="btn" onclick="submitData()">Submit (제출)</button>
+                    </div>
+                </div>
+            `;
+        }
+        else {
+            html = `<div class="step active" style="text-align:center;"><h2>Thank You!</h2><p>Data submitted successfully.</p></div>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    // Helper
+    function createQuestionBlock(num, title, sub, name, savedVal) {
+        let opts = '';
+        for(let i=1; i<=5; i++) {
+            opts += `<label><input type="radio" name="${name}" value="${i}" ${savedVal == i ? 'checked' : ''}>${i}</label>`;
+        }
+        return `
+            <div class="question-block">
+                <span class="question-label">${num}. ${title}</span>
+                <span class="question-sub">${sub}</span>
+                <div class="scale-options">${opts}</div>
+            </div>
+        `;
+    }
+
+    function next() { currentStep++; renderStep(); }
+    function prev() { if(currentStep > 0) currentStep--; renderStep(); }
+
+    function saveAndNext(idx) {
+        const form = document.getElementById('eval-form');
+        const q1 = form.querySelector(`input[name="q1"]:checked`);
+        const q2 = form.querySelector(`input[name="q2"]:checked`);
+        const q3 = form.querySelector(`input[name="q3"]:checked`);
+        const q4 = form.querySelector(`input[name="q4"]:checked`);
+
+        if(!q1 || !q2 || !q3 || !q4) {
+            alert("Please answer all questions (모든 항목에 답해주세요).");
+            return;
+        }
+
+        responses[`v${idx}_q1`] = q1.value;
+        responses[`v${idx}_q2`] = q2.value;
+        responses[`v${idx}_q3`] = q3.value;
+        responses[`v${idx}_q4`] = q4.value;
+        next();
+    }
+
+    function submitData() {
+        // 값 가져오기
+        const hVal = document.getElementById('est_hour').value;
+        const mVal = document.getElementById('est_min').value;
+        const des = document.getElementById('design_level').value;
+        const mot = document.querySelector('input[name="motion_exp"]:checked');
+        const tool = document.getElementById('tools').value.trim();
+
+        // 유효성 검사 (Validation)
+        // 1. 시간: 둘 다 비어있으면 안 됨
+        if (hVal === "" && mVal === "") {
+            alert("Please enter Estimated Creation Time.\n(작업 예상 시간을 입력해주세요.)");
+            return;
+        }
+        // 2. 나머지 필수 항목
+        if(!des) return alert("Select Design Experience.");
+        if(!mot) return alert("Select Motion Experience.");
+        if(!tool) return alert("Enter Tools used.");
+
+        if(!confirm("Submit your responses?")) return;
+
+        // 전송 데이터 구성 (빈 값은 0으로 처리)
+        responses['est_hour'] = hVal || 0;
+        responses['est_min'] = mVal || 0;
+        responses['design_level'] = des;
+        responses['motion_exp'] = mot.value;
+        responses['tools'] = tool;
+        responses['timestamp'] = new Date().toISOString();
+
+        const btn = document.querySelector('button[onclick="submitData()"]');
+        btn.innerText = "Sending...";
+        btn.disabled = true;
+
+        if (GOOGLE_SCRIPT_URL.includes("여기에")) {
+            alert("Set Google Script URL in code!");
+            btn.disabled = false; return;
+        }
+
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(responses)
+        }).then(() => { next(); }).catch(err => {
+            console.error(err); alert("Error sending data."); btn.disabled = false;
+        });
+    }
+
+    renderStep();
+</script>
+</body>
+</html>
