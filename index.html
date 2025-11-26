@@ -39,7 +39,7 @@
         .question-block { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0; }
         .question-block:last-child { border-bottom: none; }
         .question-label { font-weight: 700; margin-bottom: 0.4rem; display: block; font-size: 1rem; }
-        .question-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 0.8rem; display: block; }
+        .question-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 0.8rem; display: block; line-height: 1.4; }
         
         /* Likert Scale */
         .scale-options { display: flex; justify-content: space-between; margin-top: 10px; padding: 0 10px; }
@@ -72,7 +72,7 @@
         { id: 5, src: "videos/local_fire.mp4", word: "FIRE", prompt: "Two soldiers are firing their guns, one standing and one crouching", type: "ref", refData: "videos/2.gif" },
         { id: 6, src: "videos/local_gym2.mp4", word: "GYM", prompt: "A man doing exercise by lifting two dumbbells in both hands", type: "ref", refData: "videos/4.gif" },
         { id: 7, src: "videos/edge_gym.gif", word: "GYM", prompt: "A man doing exercise by lifting two dumbbells in both hands", type: "text", refData: "move like flowing wind with a rotating effect" },
-        { id: 8, src: "videos/edge_jet.gif", word: "JET", prompt: "Three jet planes are flying in formation side by side.", type: "text", refData: "a fast forward-sweeping movement that shoots ahead like a jet" }
+        { id: 8, src: "videos/edge_kick.gif", word: "JET", prompt: "Three jet planes are flying in formation side by side.", type: "text", refData: "a fast forward-sweeping movement that shoots ahead like a jet" }
     ];
 
     // ★ 구글 스크립트 URL (배포 후 붙여넣기 필수)
@@ -148,12 +148,10 @@
             const q3 = responses[`v${currentStep}_q3`] || '';
             const q4 = responses[`v${currentStep}_q4`] || '';
 
-            // 메인 비디오/이미지 렌더링
             const mainVisual = item.src.endsWith('.gif') 
                 ? `<img src="${item.src}" alt="Generated Result">`
                 : `<video src="${item.src}" controls loop autoplay muted playsinline></video>`;
 
-            // 레퍼런스 렌더링 (텍스트 vs GIF)
             let refHtml = '';
             if (item.type === 'text') {
                 refHtml = `
@@ -216,9 +214,13 @@
                     
                     <div class="question-block">
                         <span class="question-label">1. Estimated Creation Time (작업 시간 예측) <span style="color:red">*</span></span>
+                        <span class="question-sub">
+                            If you were to create this typography manually, how long would it take?<br>
+                            (해당 typography를 직접 만든다면 얼마나 시간이 소요될 것 같나요?)
+                        </span>
                         <div class="time-inputs">
-                            <input type="number" id="est_hour" placeholder="0" min="0" value="${s['est_hour']||''}" style="width:60px"> Hours 
-                            <input type="number" id="est_min" placeholder="0" min="0" value="${s['est_min']||''}" style="width:60px"> Minutes
+                            <input type="number" id="est_hour" placeholder="0" value="${s['est_hour']||''}" style="width:60px"> Hours 
+                            <input type="number" id="est_min" placeholder="0" value="${s['est_min']||''}" style="width:60px"> Minutes
                         </div>
                     </div>
 
@@ -264,7 +266,6 @@
         container.innerHTML = html;
     }
 
-    // Helper
     function createQuestionBlock(num, title, sub, name, savedVal) {
         let opts = '';
         for(let i=1; i<=5; i++) {
@@ -322,7 +323,6 @@
 
         if(!confirm("Submit your responses?")) return;
 
-        // 전송 데이터 구성 (빈 값은 0으로 처리)
         responses['est_hour'] = hVal || 0;
         responses['est_min'] = mVal || 0;
         responses['design_level'] = des;
